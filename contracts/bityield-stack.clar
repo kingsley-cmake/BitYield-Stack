@@ -39,3 +39,42 @@
 (define-constant MAX-PROTOCOL-NAME-LENGTH u50)    ;; Strategy identifier limit
 (define-constant MAX-BASE-APY u10000)             ;; 100.00% APY ceiling
 (define-constant MAX-DEPOSIT-AMOUNT u1000000000)  ;; 1,000,000,000 sats equivalent
+
+;; Data Structures
+(define-map supported-protocols                   ;; Active yield strategies
+    {protocol-id: uint} 
+    {
+        name: (string-ascii 50),                  ;; Strategy identifier
+        base-apy: uint,                           ;; Annualized percentage (BASE_DENOMINATION)
+        max-allocation-percentage: uint,          ;; TVL percentage cap
+        active: bool                              ;; Strategy status
+    }
+)
+
+(define-map user-deposits                         ;; User position tracker
+    {user: principal, protocol-id: uint} 
+    {
+        amount: uint,                             ;; sBTC-denominated
+        deposit-time: uint                        ;; Block height timestamp
+    }
+)
+
+(define-map protocol-total-deposits               ;; Strategy TVL tracker
+    {protocol-id: uint} 
+    {total-deposit: uint}
+)
+
+;; Protocol State
+(define-data-var total-protocols uint u0)         ;; Active strategy counter
+
+;; Input Validation Functions
+(define-private (is-valid-protocol-id (protocol-id uint))
+    (and (> protocol-id u0) (<= protocol-id MAX-PROTOCOLS))
+)
+
+(define-private (is-valid-protocol-name (name (string-ascii 50)))
+    (and 
+        (> (len name) u0) 
+        (<= (len name) MAX-PROTOCOL-NAME-LENGTH)
+    )
+)
